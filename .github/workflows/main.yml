@@ -33,7 +33,7 @@ jobs:
 
     - name: Build Docker image
       run: |
-        docker build -t sample-app application/
+        docker build -t sample-app project/application/
 
     - name: Log in to AWS ECR
       id: login-ecr
