@@ -45,6 +45,29 @@ jobs:
         AWS_REGION: eu-west-1  
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        
+    - name: Get ECR Login and Registry URI
+      id: ecr-login
+      uses: aws-actions/amazon-ecr-login@v1
+      env:
+        AWS_REGION: eu-west-1
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+    - name: Retrieve ECR Registry URI
+      id: ecr-info
+      run: |
+        echo "ECR_REGISTRY=$(aws sts get-caller-identity --query 'Account' --output text).dkr.ecr.${AWS_REGION}.amazonaws.com" >> $GITHUB_ENV
+    
+    - name: Tag and Push Docker Image
+      env:
+        ECR_REGISTRY: ${{ env.ECR_REGISTRY }}
+        ECR_REPOSITORY: sample-app
+        IMAGE_TAG: latest
+      run: |
+        docker tag sample-app:latest $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
 
     - name: Build, tag, and push image to ECR
       env:
