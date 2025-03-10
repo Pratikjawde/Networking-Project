@@ -41,9 +41,10 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H 3.250.239.214 >> ~/.ssh/known_hosts
 
-    - name: Run Ansible playbook
-      run: ansible-playbook -i project/configuration/host.ini project/configuration/playbook.yml
+    - name: Run Ansible Playbook
       env:
-        ANSIBLE_HOST_KEY_CHECKING: 'false'
-        ANSIBLE_PRIVATE_KEY_FILE: ${{ secrets.ANSIBLE_PRIVATE_KEY_FILE }}
-        ANSIBLE_USER: ec2-user
+          ANSIBLE_PRIVATE_KEY_FILE: ~/.ssh/id_rsa
+          ANSIBLE_USER: ec2-user
+          ANSIBLE_HOST_KEY_CHECKING: false
+      run: |
+          ansible-playbook -i project/configuration/host.ini project/configuration/playbook.yml
