@@ -62,7 +62,7 @@
 
     - name: Copy application files to the target host
       copy:
-        src: /mnt/c/Users/user/OneDrive/Desktop/project/application/
+        src: project/application/
         dest: /home/ec2-user/application/
         owner: ec2-user
         group: ec2-user
