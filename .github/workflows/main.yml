@@ -85,6 +85,9 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y ansible
+        
+    - name: Fix SSH Key Permissions
+      run: chmod 600 project/infrastructure/new
 
     - name: Run Ansible playbook
       run: ansible-playbook -i project/configuration/hosts project/configuration/playbook.yml
