@@ -62,7 +62,7 @@
 
     - name: Copy application files to the target host
       copy:
-        src: application/
+        src: /home/runner/work/Networking-Project/Networking-Project/project/application
         dest: /home/ec2-user/application/
         owner: ec2-user
         group: ec2-user
