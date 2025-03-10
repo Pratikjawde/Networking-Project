@@ -88,6 +88,13 @@ jobs:
         
     - name: Fix SSH Key Permissions
       run: chmod 600 project/infrastructure/new
+      
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Debug - Check files before copying
+      run: ls -R project/
+
 
     - name: Run Ansible playbook
       run: ansible-playbook -i project/configuration/host.ini project/configuration/playbook.yml
