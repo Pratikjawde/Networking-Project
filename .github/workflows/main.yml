@@ -129,6 +129,10 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y ansible
+    - name: Setup SSH Key
+      run: |
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
 
     - name: Run Ansible playbook
       run: ansible-playbook -i project/configuration/host.ini project/configuration/playbook.yml
