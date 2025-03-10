@@ -154,6 +154,7 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_REGION: eu-west-1
+        
     - name: Ensure ECR Repository Exists
       run: |
         aws ecr describe-repositories --repository-names sample-app --region eu-west-1 || \
@@ -170,6 +171,7 @@ jobs:
       run: |
         docker tag sample-app:latest $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        
     - name: Checkout code
       uses: actions/checkout@v3
 
