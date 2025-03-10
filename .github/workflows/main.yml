@@ -87,7 +87,7 @@ jobs:
         sudo apt-get install -y ansible
 
     - name: Run Ansible playbook
-      run: ansible-playbook -i configuration/hosts configuration/playbook.yml
+      run: ansible-playbook -i project/configuration/hosts project/configuration/playbook.yml
       env:
         ANSIBLE_HOST_KEY_CHECKING: 'false'
         ANSIBLE_PRIVATE_KEY_FILE: ${{ secrets.ANSIBLE_PRIVATE_KEY_FILE }}
