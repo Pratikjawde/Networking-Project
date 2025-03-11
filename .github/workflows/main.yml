@@ -145,7 +145,7 @@ jobs:
         
     - name: Pull latest Docker image and redeploy
       run: |
-        ssh -i /mnt/c/Users/user/OneDrive/Desktop/project/infrastructure/new ec2-user@3.250.239.214 << 'EOF'
+        ssh -i ${{ secrets.ANSIBLE_PRIVATE_KEY_FILE }} ec2-user@3.250.239.214 << 'EOF'
         docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         docker stop $(docker ps -q --filter "ancestor=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG")
         docker run -d -p 80:80 $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
