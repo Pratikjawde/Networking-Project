@@ -21,8 +21,11 @@ jobs:
       with:
         terraform_version: '1.5.0'  # Specify the required Terraform version
 
-    - name: Set up Ansible
-      uses: geerlingguy/ansible-action@v2
+    - name: Install Ansible
+      run: |
+        sudo apt update
+        sudo apt install -y python3-pip
+        pip3 install ansible
 
     - name: Cache Terraform dependencies
       uses: actions/cache@v3
@@ -34,7 +37,6 @@ jobs:
 
     - name: Install dependencies (Ansible, Terraform providers)
       run: |
-        pip install ansible
         terraform init
 
   validate-terraform:
@@ -90,4 +92,3 @@ jobs:
     - name: Deploy Infrastructure with Terraform
       run: |
         terraform apply -auto-approve
-
