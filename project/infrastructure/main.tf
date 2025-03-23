@@ -68,11 +68,7 @@ resource "aws_instance" "web" {
   vpc_security_group_ids = [aws_security_group.allow_ssh_http.id]
   key_name               = aws_key_pair.new.key_name
 
-  provisioner "local-exec" {
-    command = <<EOT
-      ansible-playbook -i Networking-Project/project/configuration/host.ini -u ec2-user --private-key ~/.ssh/id_rsa Networking-Project/project/configuration/playbook.yml
-    EOT
-  }
+
 
   tags = {
     Name = "project"
