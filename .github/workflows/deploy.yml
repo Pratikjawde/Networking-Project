@@ -34,12 +34,28 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y ansible
-    - name: Set up SSH key
+    - name: Setup SSH Key
       run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.ANSIBLE_PRIVATE_KEY_FILE }}" > ~/.ssh/id_rsa
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H 3.250.239.214 >> ~/.ssh/known_host.ini
+          
+    - name: Set SSH permissions
+      run: |
+          chmod 700 ~/.ssh
+          chmod 600 ~/.ssh/id_rsa
+          chmod 644 ~/.ssh/known_hosts
+          
+    - name: Debug SSH Setup
+      run: |
+          ls -lah ~/.ssh/
+          cat ~/.ssh/id_rsa
+          ssh-keyscan -H 3.250.239.214
+          
+    - name: Test SSH Connection
+      run: |
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ec2-user@3.250.239.214 "echo Connected Successfully"
+
 
     - name: Run Ansible Playbook
       env:
