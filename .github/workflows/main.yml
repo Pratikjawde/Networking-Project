@@ -46,6 +46,7 @@ jobs:
 
   validate-terraform:
     runs-on: ubuntu-latest
+    needs: setup
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -80,7 +81,7 @@ jobs:
 
     - name: Run Ansible Playbook
       run: |
-        ansible-playbook -i inventory/hosts playbook.yml
+        ansible-playbook -i project/configuration/host.ini project/configuration/playbook.yml
 
   deploy-to-aws:
     runs-on: ubuntu-latest
