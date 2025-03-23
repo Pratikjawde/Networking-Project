@@ -21,6 +21,9 @@ jobs:
       with:
         terraform_version: '1.5.0'  # Specify the required Terraform version
 
+    - name: Check Terraform Version
+      run: terraform --version  # Check if Terraform is installed correctly
+
     - name: Install Ansible
       run: |
         sudo apt update
@@ -35,7 +38,7 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-terraform-
 
-    - name: Install dependencies (Ansible, Terraform providers)
+    - name: Install dependencies (Terraform providers)
       run: |
         terraform init
 
