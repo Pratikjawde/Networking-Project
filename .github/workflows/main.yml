@@ -61,8 +61,8 @@ jobs:
     # - name: Terraform Validate
     #   run: terraform validate
 
-    - name: Terraform Plan
-      run: terraform plan -out=plan.out
+    # - name: Terraform Plan
+    #   run: terraform plan -out=plan.out
 
   ansible-deploy:
     runs-on: ubuntu-latest
