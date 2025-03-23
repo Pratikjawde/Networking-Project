@@ -50,6 +50,9 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v3
 
+    - name: Check Terraform Version
+      run: terraform --version  # Ensure terraform is available before running any command
+
     - name: Terraform Format Check
       run: terraform fmt -check
 
