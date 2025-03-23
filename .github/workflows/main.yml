@@ -64,24 +64,53 @@ jobs:
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
+  
   ansible-deploy:
     runs-on: ubuntu-latest
-    needs: [validate-terraform]
-    
+
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v3
 
-    - name: Set up SSH for Ansible (if required)
+    - name: Set up AWS CLI
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws_region: 'us-east-1'
+
+    - name: Get EC2 Instance Public IP
+      id: get_ip
       run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.AWS_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
+        PUBLIC_IP=$(aws ec2 describe-instances --instance-ids i-00d3f8139f992340d --query "Reservations[0].Instances[0].PublicIpAddress" --output text)
+        echo "PUBLIC_IP=$PUBLIC_IP" >> $GITHUB_ENV  # Save IP as environment variable
+
+    - name: Update Ansible Inventory
+      run: |
+        sed -i "s/<dynamic-ip>/$PUBLIC_IP/" project/configuration/host.ini
 
     - name: Run Ansible Playbook
       run: |
         ansible-playbook -i project/configuration/host.ini project/configuration/playbook.yml
+
+
+  # ansible-deploy:
+  #   runs-on: ubuntu-latest
+  #   needs: [validate-terraform]
+    
+  #   steps:
+  #   - name: Checkout Repository
+  #     uses: actions/checkout@v3
+
+  #   - name: Set up SSH for Ansible (if required)
+  #     run: |
+  #       mkdir -p ~/.ssh
+  #       echo "${{ secrets.AWS_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+  #       chmod 600 ~/.ssh/id_rsa
+
+  #   - name: Run Ansible Playbook
+  #     run: |
+  #       ansible-playbook -i project/configuration/host.ini project/configuration/playbook.yml
 
   deploy-to-aws:
     runs-on: ubuntu-latest
