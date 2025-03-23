@@ -16,12 +16,9 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v3
 
-    - name: Install Terraform
+    - name: Install Terraform using snap
       run: |
-        curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
-        sudo apt update && sudo apt install -y gnupg software-properties-common
-        sudo apt update
-        sudo apt install -y terraform
+        sudo snap install terraform
 
     - name: Check Terraform Version
       run: terraform --version  # Ensure terraform is installed correctly
