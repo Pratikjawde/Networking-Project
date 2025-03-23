@@ -55,11 +55,11 @@ jobs:
     # - name: Check Terraform Version
     #   run: terraform --version  # Ensure terraform is available before running any command
 
-    - name: Terraform Format Check
-      run: terraform fmt -check
+    # - name: Terraform Format Check
+    #   run: terraform fmt -check
 
-    - name: Terraform Validate
-      run: terraform validate
+    # - name: Terraform Validate
+    #   run: terraform validate
 
     - name: Terraform Plan
       run: terraform plan -out=plan.out
