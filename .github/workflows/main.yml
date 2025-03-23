@@ -18,7 +18,7 @@ jobs:
 
     - name: Install Terraform using snap
       run: |
-        sudo snap install terraform
+        sudo snap install terraform --classic
 
     - name: Check Terraform Version
       run: terraform --version  # Ensure terraform is installed correctly
@@ -74,26 +74,3 @@ jobs:
         mkdir -p ~/.ssh
         echo "${{ secrets.AWS_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-
-    - name: Run Ansible Playbook
-      run: |
-        ansible-playbook -i inventory/hosts playbook.yml
-
-  deploy-to-aws:
-    runs-on: ubuntu-latest
-    needs: [validate-terraform, ansible-deploy]
-    
-    steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v3
-
-    - name: Set up AWS CLI
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws_region: 'us-east-1'  # Specify the AWS region
-
-    - name: Deploy Infrastructure with Terraform
-      run: |
-        terraform apply -auto-approve
