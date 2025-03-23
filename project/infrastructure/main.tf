@@ -70,7 +70,7 @@ resource "aws_instance" "web" {
 
   provisioner "local-exec" {
     command = <<EOT
-      ansible-playbook -i /mnt/c/Users/user/OneDrive/Desktop/project/configuration/host.ini -u ec2-user --private-key /mnt/c/Users/user/OneDrive/Desktop/project/infrastructure/new /mnt/c/Users/user/OneDrive/Desktop/project/configuration/playbook.yml
+      ansible-playbook -i project/configuration/host.ini -u ec2-user --private-key project/infrastructure/new project/configuration/playbook.yml
     EOT
   }
 
