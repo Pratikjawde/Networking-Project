@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: Terraform & Ansible Deployment
 
 on:
   push:
@@ -9,93 +9,85 @@ on:
       - main
 
 jobs:
-  build:
+  setup:
     runs-on: ubuntu-latest
-
+    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+    - name: Checkout Repository
+      uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v2
       with:
-        python-version: '3.8'
+        terraform_version: '1.5.0'  # Specify the required Terraform version
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r project/application/requirements.txt
-    - name: Run tests
-      run: |
-        # Add your test commands here
-        echo "Running tests..."
-    - name: Build Docker image
-      run: |
-        docker build -t sample-app project/application/
-    # - name: Login to Amazon ECR
-    #   uses: aws-actions/amazon-ecr-login@v1
-    #   with:
-    #     mask-password: true
-    #     registry-type: private
-    #     skip-logout: false
-    #   env:
-    #     AWS_REGION: eu-west-1  
-    #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-    #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        
-    # - name: Get ECR Login and Registry URI
-    #   id: ecr-login
-    #   uses: aws-actions/amazon-ecr-login@v1
-    #   env:
-    #     AWS_REGION: eu-west-1
-    #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-    #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    - name: Set up Ansible
+      uses: geerlingguy/ansible-action@v2
 
-    # - name: Retrieve ECR Registry URI
-    #   id: ecr-info
-    #   run: |
-    #     echo "ECR_REGISTRY=$(aws sts get-caller-identity --query 'Account' --output text).dkr.ecr.${AWS_REGION}.amazonaws.com" >> $GITHUB_ENV
-    
-    # - name: Tag and Push Docker Image
-      # env:
-      #   ECR_REGISTRY: ${{ env.ECR_REGISTRY }}
-      #   ECR_REPOSITORY: sample-app
-      #   IMAGE_TAG: latest
-      # run: |
-      #   docker tag sample-app:latest $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-      #   docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v2
+    - name: Cache Terraform dependencies
+      uses: actions/cache@v3
       with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: eu-west-1  # Set your AWS region here
-    
-    - name: Login to Amazon ECR
-      uses: aws-actions/amazon-ecr-login@v1
-    
-    - name: Retrieve AWS Account ID and Set ECR Registry
-      id: ecr-info
-      run: |
-        ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
-        echo "ECR_REGISTRY=${ACCOUNT_ID}.dkr.ecr.eu-west-1.amazonaws.com" >> $GITHUB_ENV
-    
-    - name: Tag and Push Docker Image
-      env:
-        ECR_REGISTRY: ${{ env.ECR_REGISTRY }}
-        ECR_REPOSITORY: sample-app
-        IMAGE_TAG: latest
-      run: |
-        echo "Using Registry: $ECR_REGISTRY"
-        docker tag sample-app:latest $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-    # - name: Build, tag, and push image to ECR
-    #   env:
-    #     ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-    #     ECR_REPOSITORY: sample-app
-    #     IMAGE_TAG: latest
-    #   run: |
-    #     docker tag sample-app:latest $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-    #     docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        path: ~/.terraform.d/plugins
+        key: ${{ runner.os }}-terraform-${{ hashFiles('**/*.tf') }}
+        restore-keys: |
+          ${{ runner.os }}-terraform-
 
- 
+    - name: Install dependencies (Ansible, Terraform providers)
+      run: |
+        pip install ansible
+        terraform init
+
+  validate-terraform:
+    runs-on: ubuntu-latest
+    needs: setup
+    
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Terraform Format Check
+      run: terraform fmt -check
+
+    - name: Terraform Validate
+      run: terraform validate
+
+    - name: Terraform Plan
+      run: terraform plan -out=plan.out
+
+  ansible-deploy:
+    runs-on: ubuntu-latest
+    needs: [validate-terraform]
+    
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Set up SSH for Ansible (if required)
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.AWS_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+
+    - name: Run Ansible Playbook
+      run: |
+        ansible-playbook -i inventory/hosts playbook.yml
+
+  deploy-to-aws:
+    runs-on: ubuntu-latest
+    needs: [validate-terraform, ansible-deploy]
+    
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Set up AWS CLI
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws_region: 'us-east-1'  # Specify the AWS region
+
+    - name: Deploy Infrastructure with Terraform
+      run: |
+        terraform apply -auto-approve
+
